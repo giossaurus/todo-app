@@ -1,29 +1,31 @@
-const express = require('express');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const { connectMongoDB, connectRedis } = require('./config/database');
-const authRoutes = require('./routes/auth');
-const taskRoutes = require('./routes/tasks');
+const express = require('express')
+const cors = require('cors')
+const dotenv = require('dotenv')
+const { connectMongoDB, connectRedis } = require('./config/database')
+const authRoutes = require('./routes/auth')
+const taskRoutes = require('./routes/tasks')
+const swaggerUi = require('swagger-ui-express')
+const YAML = require('yamljs')
+const swaggerDocument = YAML.load('./swagger.yaml')
 
-dotenv.config();
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+dotenv.config()
 
-// Middleware
-app.use(cors());
-app.use(express.json());
+const app = express()
+const PORT = process.env.PORT || 3000
 
-// Database connections
-connectMongoDB();
-connectRedis();
+app.use(cors())
+app.use(express.json())
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
+connectMongoDB()
+connectRedis()
+
+app.use('/api/auth', authRoutes)
+app.use('/api/tasks', taskRoutes)
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  console.log(`Server is running on port ${PORT}`)
+})
 
-module.exports = app;
+module.exports = app

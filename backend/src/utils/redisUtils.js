@@ -1,8 +1,8 @@
-const redis = require('redis');
+const redis = require('redis')
 
-const client = redis.createClient(process.env.REDIS_URL);
+const client = redis.createClient(process.env.REDIS_URL)
 
-client.connect().catch(console.error);
+client.connect().catch(console.error)
 
 const setCache = async (key, value, expiration = 3600) => {
   try {
@@ -10,26 +10,26 @@ const setCache = async (key, value, expiration = 3600) => {
       EX: expiration,
     });
   } catch (error) {
-    console.error('Redis set error:', error);
+    console.error('Redis set error:', error)
   }
-};
+}
 
 const getCache = async (key) => {
   try {
-    const value = await client.get(key);
-    return value ? JSON.parse(value) : null;
+    const value = await client.get(key)
+    return value ? JSON.parse(value) : null
   } catch (error) {
-    console.error('Redis get error:', error);
-    return null;
+    console.error('Redis get error:', error)
+    return null
   }
-};
+}
 
 const deleteCache = async (key) => {
   try {
-    await client.del(key);
+    await client.del(key)
   } catch (error) {
-    console.error('Redis delete error:', error);
+    console.error('Redis delete error:', error)
   }
-};
+}
 
-module.exports = { setCache, getCache, deleteCache };
+module.exports = { setCache, getCache, deleteCache }
