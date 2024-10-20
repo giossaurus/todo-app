@@ -1,0 +1,27 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 800px;
+}
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-item .form-check-input {
+    margin-right: 10px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.completed-task {
+    text-decoration: line-through;
+    color: #6c757d;
+}
