@@ -1,5 +1,5 @@
-const API_URL = 'http://localhost:3000/api'
-let token = localStorage.getItem('token');
+const API_URL = 'https://todo-app-giossaurus-4339405b98d6.herokuapp.com/api';
+let token = localStorage.getItem('token')
 
 const authContainer = document.getElementById('auth-container')
 const todoContainer = document.getElementById('todo-container')
@@ -31,7 +31,7 @@ function showTodoApp() {
 }
 
 function showRegisterForm() {
-    const form = loginForm;
+    const form = loginForm
     form.innerHTML = `
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
@@ -43,8 +43,8 @@ function showRegisterForm() {
         </div>
         <button type="submit" class="btn btn-primary w-100">Register</button>
     `;
-    form.removeEventListener('submit', handleLogin);
-    form.addEventListener('submit', handleRegister);
+    form.removeEventListener('submit', handleLogin)
+    form.addEventListener('submit', handleRegister)
 }
 
 async function handleLogin(e) {
@@ -52,21 +52,29 @@ async function handleLogin(e) {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
+    console.log('Login attempt:', { username, password: '********' })
+
     try {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
-        });
+        })
 
-        if (!response.ok) throw new Error('Login failed')
+        console.log('Login response status:', response.status);
+        const data = await response.json();
+        console.log('Login response data:', data);
 
-        const data = await response.json()
+        if (!response.ok) {
+            throw new Error(data.error || 'Login falhou')
+        }
+
         token = data.token;
         localStorage.setItem('token', token)
         showTodoApp();
     } catch (error) {
-        alert('Login failed. Please try again.')
+        console.error('Login com erro', error.message);
+        alert(`Login falhou: ${error.message}`)
     }
 }
 
@@ -80,16 +88,16 @@ async function handleRegister(e) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
-        });
+        })
 
-        if (!response.ok) throw new Error('Registration failed')
+        if (!response.ok) throw new Error('Registro falhou')
 
         const data = await response.json()
         token = data.token;
         localStorage.setItem('token', token)
-        showTodoApp();
+        showTodoApp()
     } catch (error) {
-        alert('Registration failed. Please try again.')
+        alert('Registro falhou. Tente novamente.')
     }
 }
 
@@ -99,12 +107,12 @@ async function fetchTasks() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error('Failed to fetch tasks')
+        if (!response.ok) throw new Error('Falha ao carregar tarefas')
 
         const tasks = await response.json()
         renderTasks(tasks)
     } catch (error) {
-        alert('Failed to fetch tasks. Please try again.')
+        alert('Falha ao carregar tarefas. Tente novamente.')
     }
 }
 
@@ -129,9 +137,9 @@ function renderTasks(tasks) {
                 </button>
             </div>
         `
-        taskList.appendChild(li);
+        taskList.appendChild(li)
         
-        setTimeout(() => li.style.opacity = '1', 50 * tasks.indexOf(task));
+        setTimeout(() => li.style.opacity = '1', 50 * tasks.indexOf(task))
     })
 }
 
@@ -146,7 +154,7 @@ async function toggleTask(id, completed) {
             body: JSON.stringify({ completed })
         })
 
-        if (!response.ok) throw new Error('Failed to update task')
+        if (!response.ok) throw new Error('Falha ao atualizar')
 
         const taskElement = document.querySelector(`[data-task-id="${id}"]`)
         const labelElement = taskElement.querySelector('.form-check-label')
@@ -162,12 +170,12 @@ async function toggleTask(id, completed) {
         setTimeout(() => taskElement.style.transform = 'scale(1)', 300)
 
     } catch (error) {
-        alert('Failed to update task. Please try again.')
+        alert('Falha ao atualizar. Tente novamente.')
     }
 }
 
 async function deleteTask(id) {
-    if (!confirm('Are you sure you want to delete this task?')) return
+    if (!confirm('Tem certeza que deseja apagar?')) return
 
     try {
         const response = await fetch(`${API_URL}/tasks/${id}`, {
@@ -175,7 +183,7 @@ async function deleteTask(id) {
             headers: { 'Authorization': `Bearer ${token}` }
         })
 
-        if (!response.ok) throw new Error('Failed to delete task')
+        if (!response.ok) throw new Error('Falha ao deletar tarefa')
 
         const taskElement = document.querySelector(`[data-task-id="${id}"]`)
         taskElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease'
@@ -184,7 +192,7 @@ async function deleteTask(id) {
         setTimeout(() => taskElement.remove(), 300)
 
     } catch (error) {
-        alert('Failed to delete task. Please try again.')
+        alert('Falha ao deletar tarefa. Tente novamente.')
     }
 }
 
@@ -202,7 +210,7 @@ async function addTask() {
             body: JSON.stringify({ title })
         })
 
-        if (!response.ok) throw new Error('Failed to add task')
+        if (!response.ok) throw new Error('Falha ao adicionar tarefa')
 
         const task = await response.json()
         const li = document.createElement('li')
@@ -233,6 +241,6 @@ async function addTask() {
 
         newTaskInput.value = ''
     } catch (error) {
-        alert('Failed to add task. Please try again.')
+        alert('Falha ao adicionar tarefa. Tente novamente.')
     }
 }

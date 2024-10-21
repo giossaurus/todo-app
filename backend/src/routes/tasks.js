@@ -1,104 +1,86 @@
 const express = require('express')
 const Task = require('../models/Task')
 const auth = require('../middleware/auth')
-const { setCache, getCache, deleteCache } = require('../utils/redisUtils')
+const { setCache, getCache, deleteCache} = require('../utils/redisUtils')
 const router = express.Router()
-
-router.post('/', auth, async (req, res) => {
-  const task = new Task({
-    ...req.body,
-    owner: req.user._id
-  })
-
-  try {
-    await task.save()
-    await deleteCache(`tasks:${req.user._id}`)
-    res.status(201).send(task)
-  } catch (error) {
-    res.status(400).send(error)
-  }
-})
-
 
 router.get('/', auth, async (req, res) => {
   try {
-    const cacheKey = `tasks:${req.user._id}`
-    const cachedTasks = await getCache(cacheKey)
-
-    if (cachedTasks) {
-      return res.send(JSON.parse(cachedTasks))
-    }
-
+    console.log('Procurando tarefas do user:', req.user._id)
     const tasks = await Task.find({ owner: req.user._id })
-    await setCache(cacheKey, JSON.stringify(tasks))
-    res.send(tasks)
+    console.log('Tarefas recuperadas com sucesso')
+    res.json(tasks)
   } catch (error) {
-    res.status(500).send()
+    console.error('Erro ao recuperar tarefas:', error)
+    res.status(500).json({ error: 'Error ao carregar tarefas' })
   }
 })
 
-
-router.get('/:id', auth, async (req, res) => {
-  const _id = req.params.id
-
+router.post('/', auth, async (req, res) => {
   try {
-    const cacheKey = `task:${_id}`;
-    const cachedTask = await getCache(cacheKey)
-
-    if (cachedTask) {
-      return res.send(JSON.parse(cachedTask))
-    }
-
-    const task = await Task.findOne({ _id, owner: req.user._id });
-    if (!task) {
-      return res.status(404).send()
-    }
-    await setCache(cacheKey, JSON.stringify(task))
-    res.send(task)
+    console.log('Criando nova tarefa para o user:', req.user._id)
+    const task = new Task({
+      ...req.body,
+      owner: req.user._id,
+    })
+    await task.save();
+    console.log('Tarefa criada com sucesso:', task._id)
+    res.status(201).json(task)
   } catch (error) {
-    res.status(500).send()
+    console.error('Erro ao criar:', error)
+    res.status(400).json({ error: error.message })
   }
 })
 
 router.patch('/:id', auth, async (req, res) => {
-  const updates = Object.keys(req.body)
+  const updates = Object.keys(req.body);
   const allowedUpdates = ['title', 'description', 'completed']
-  const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  )
 
   if (!isValidOperation) {
-    return res.status(400).send({ error: 'Invalid updates!' })
+    return res.status(400).json({ error: 'Update inválido' })
   }
 
   try {
-    const task = await Task.findOne({ _id: req.params.id, owner: req.user._id });
+    const task = await Task.findOne({
+      _id: req.params.id,
+      owner: req.user._id,
+    })
 
     if (!task) {
-      return res.status(404).send()
+      return res.status(404).json({ error: 'Tarefa não encontrada' })
     }
 
-    updates.forEach((update) => task[update] = req.body[update])
-    await task.save();
+    updates.forEach((update) => (task[update] = req.body[update]))
+    await task.save()
     await deleteCache(`task:${req.params.id}`)
     await deleteCache(`tasks:${req.user._id}`)
-    res.send(task)
+    res.json(task)
   } catch (error) {
-    res.status(400).send(error)
+    console.error('Erro atualizando tarefa:', error)
+    res.status(400).json({ error: error.message })
   }
 })
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const task = await Task.findOneAndDelete({ _id: req.params.id, owner: req.user._id })
+    const task = await Task.findOneAndDelete({
+      _id: req.params.id,
+      owner: req.user._id,
+    })
 
     if (!task) {
-      res.status(404).send()
+      return res.status(404).json({ error: 'Tarefa não encontrada' })
     }
 
     await deleteCache(`task:${req.params.id}`)
     await deleteCache(`tasks:${req.user._id}`)
-    res.send(task)
+    res.json({ message: 'Tarefa apagada com sucesso' })
   } catch (error) {
-    res.status(500).send()
+    console.error('Erro ao apagar:', error)
+    res.status(500).json({ error: 'Erro apagando a tarefa' })
   }
 })
 

@@ -4,9 +4,7 @@
   "description": "Full-stack Todo App",
   "main": "index.js",
   "scripts": {
-    "start": "node backend/src/app.js",
-    "dev:backend": "nodemon backend/src/app.js",
-    "dev:frontend": "cd frontend && http-server -p 8080"
+    "start": "node backend/src/app.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -14,7 +12,7 @@
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.0.12",
+    "mongoose": "^8.7.2",
     "redis": "^4.0.0",
     "swagger-ui-express": "^5.0.1",
     "yamljs": "^0.3.0"

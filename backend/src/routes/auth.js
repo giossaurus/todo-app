@@ -5,25 +5,35 @@ const router = express.Router()
 
 router.post('/register', async (req, res) => {
   try {
-    const user = new User(req.body)
+    const { username, password } = req.body
+    const existingUser = await User.findOne({ username })
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists' })
+    }
+
+    const user = new User({ username, password });
     await user.save()
-    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET)
-    res.status(201).send({ user, token })
+    
+    const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET, { expiresIn: '1h' })
+    res.status(201).json({ user: { _id: user._id, username: user.username }, token })
   } catch (error) {
-    res.status(400).send(error)
+    console.error('Registration error:', error)
+    res.status(400).json({ error: 'Registration failed', details: error.message })
   }
 })
 
 router.post('/login', async (req, res) => {
   try {
-    const user = await User.findOne({ username: req.body.username })
-    if (!user || !(await user.comparePassword(req.body.password))) {
-      return res.status(401).send({ error: 'Invalid login credentials' })
-    }
+    const { username, password } = req.body
+    console.log(`Login attempt for username: ${username}`)
+
+    const user = await User.findByCredentials(username, password)
     const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET)
-    res.send({ user, token })
+    console.log(`JWT created for user: ${username}`)
+    res.json({ user: { _id: user._id, username: user.username }, token })
   } catch (error) {
-    res.status(400).send(error)
+    console.error('Login error:', error.message)
+    res.status(401).json({ error: 'Invalid login credentials' })
   }
 })
 
